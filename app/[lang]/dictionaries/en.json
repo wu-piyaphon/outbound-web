@@ -1,0 +1,179 @@
+{
+  "nav": {
+    "features": "Features",
+    "reliability": "Reliability",
+    "chart": "Live Chart",
+    "pricing": "Pricing",
+    "signIn": "Sign in",
+    "signUp": "Get started",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "eyebrow": "Algorithmic trading, transparent by design",
+    "title": "Outbound trades the markets while you sleep.",
+    "subtitle": "An automated stock trading bot targeting 2–3% monthly net returns on Alpaca Markets — with every fee tracked, so the number you see is the number you keep.",
+    "primaryCta": "Start trading",
+    "secondaryCta": "See how it works"
+  },
+  "features": {
+    "title": "Built like institutional infrastructure.",
+    "subtitle": "Edge isn't magic — it's small advantages, compounded daily and protected by ruthless risk controls.",
+    "items": {
+      "execution": {
+        "title": "Low-latency execution",
+        "description": "Orders routed through Alpaca with millisecond-level signal-to-fill — written in Go for predictable performance."
+      },
+      "risk": {
+        "title": "Risk-first by default",
+        "description": "Every signal passes a position sizing, drawdown, and exposure check before a single share is bought."
+      },
+      "fees": {
+        "title": "True net P&L",
+        "description": "Wise FX, SEC/FINRA/TAF fees, and wire transfers are all tracked — so you see your real take-home, not gross numbers."
+      },
+      "transparency": {
+        "title": "Full trade visibility",
+        "description": "Every fill, every signal, every fee — logged, timestamped (Asia/Bangkok and America/New_York), auditable forever."
+      },
+      "realtime": {
+        "title": "Realtime dashboard",
+        "description": "Portfolio value, open positions and P&L stream live via Supabase — no refresh required."
+      },
+      "control": {
+        "title": "You're always in control",
+        "description": "Pause, resume, or hit emergency liquidation from any device. The bot serves your strategy, not the other way around."
+      }
+    }
+  },
+  "reliability": {
+    "title": "Reliability you can verify.",
+    "subtitle": "Trust starts with numbers, transparency, and the freedom to walk away.",
+    "metrics": {
+      "targetReturn": "Target monthly return",
+      "maxDrawdown": "Max drawdown limit",
+      "uptime": "System uptime",
+      "feesTracked": "Fee categories tracked"
+    },
+    "howItWorks": {
+      "title": "How a trade actually happens",
+      "steps": {
+        "signal": {
+          "title": "1. Signal generated",
+          "description": "Strategy engine evaluates market data on a defined cadence and emits a candidate signal."
+        },
+        "risk": {
+          "title": "2. Risk check",
+          "description": "Position sizing, exposure limits and drawdown guards run before the order ever leaves our servers."
+        },
+        "execute": {
+          "title": "3. Execute on Alpaca",
+          "description": "Order is placed via Alpaca, the fill is recorded with all fees attributed to the trade in Supabase."
+        }
+      }
+    },
+    "transparency": {
+      "title": "Every fee, accounted for",
+      "description": "Most trading platforms quote returns in gross terms. We don't. The bot logs every cost so the dashboard shows your true net profit.",
+      "items": {
+        "wise": "Wise FX conversion fees on every funding leg",
+        "regulatory": "Alpaca regulatory fees (SEC, FINRA, TAF) per fill",
+        "wire": "Wire transfer costs in and out of the broker"
+      }
+    },
+    "stack": {
+      "title": "Built on infrastructure you already trust",
+      "alpaca": "Alpaca Markets — execution",
+      "supabase": "Supabase — data & realtime",
+      "go": "Go — trading engine"
+    },
+    "faq": {
+      "title": "Questions before you start",
+      "items": {
+        "q1": {
+          "question": "Is my money held by Outbound?",
+          "answer": "No. Funds live in your own Alpaca brokerage account. Outbound only places orders on your behalf via the Alpaca API."
+        },
+        "q2": {
+          "question": "What returns should I realistically expect?",
+          "answer": "The bot targets 2–3% net monthly return. Past performance does not guarantee future results — markets can and do produce losing months."
+        },
+        "q3": {
+          "question": "Can I stop the bot at any time?",
+          "answer": "Yes. Pause, resume, or trigger emergency liquidation from the dashboard. You always retain full control of your account."
+        },
+        "q4": {
+          "question": "How are fees handled?",
+          "answer": "Every Wise FX conversion, Alpaca regulatory fee, and wire transfer cost is recorded against the position so the displayed P&L is your true take-home."
+        }
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to put your capital to work?",
+    "subtitle": "Sign in with Google and start with a paper-trading account in under a minute.",
+    "primary": "Create your account",
+    "secondary": "Explore the live chart"
+  },
+  "footer": {
+    "tagline": "Automated trading with full fee transparency.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "links": {
+      "features": "Features",
+      "reliability": "Reliability",
+      "chart": "Live chart",
+      "pricing": "Pricing",
+      "about": "About",
+      "contact": "Contact",
+      "terms": "Terms of service",
+      "privacy": "Privacy policy",
+      "risk": "Risk disclosure"
+    },
+    "disclaimer": "Trading involves substantial risk of loss and is not suitable for every investor. Past performance is not indicative of future results.",
+    "copyright": "© {year} Outbound. All rights reserved."
+  },
+  "auth": {
+    "signIn": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your Outbound account",
+      "google": "Continue with Google",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign up"
+    },
+    "signUp": {
+      "title": "Create your account",
+      "subtitle": "Get started with Outbound in seconds",
+      "google": "Sign up with Google",
+      "haveAccount": "Already have an account?",
+      "signInLink": "Sign in"
+    },
+    "terms": "By continuing you agree to our Terms of Service and Privacy Policy.",
+    "signOut": "Sign out",
+    "dashboard": "Dashboard",
+    "errorTitle": "Authentication failed",
+    "errorMessage": "We couldn't sign you in. Please try again."
+  },
+  "chart": {
+    "title": "Live chart",
+    "subtitle": "Candlestick data with the indicators the bot uses to make decisions.",
+    "symbolLabel": "Symbol",
+    "timeframeLabel": "Timeframe",
+    "indicators": {
+      "title": "Indicators",
+      "sma": "SMA (20)",
+      "ema": "EMA (50)",
+      "rsi": "RSI (14)"
+    },
+    "loading": "Loading chart…",
+    "empty": "No data available for this symbol."
+  },
+  "common": {
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
+  }
+}
