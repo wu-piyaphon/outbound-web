@@ -41,7 +41,6 @@ Build a high-performance, real-time dashboard for portfolio tracking and bot man
 ## 2. Real-time & Data
 
 - Use **Supabase Realtime** or **WebSockets** to update P&L and Trade Logs without page refreshes.
-- Implement **SWR** or **TanStack Query** for client-side data fetching with optimistic updates.
 - Use `lightweight-charts` (by TradingView) for rendering financial candle charts.
 
 ## 3. Components & Logic
@@ -53,7 +52,7 @@ Build a high-performance, real-time dashboard for portfolio tracking and bot man
 ## 4. Performance
 
 - Use `next/image` for any assets.
-- Minimize client-side JavaScript; keep the trading logic on the backend (NestJS).
+- Minimize client-side JavaScript; keep the trading logic on the backend (Golang).
 
 ## 5. Code Quality & Best Practices
 
