@@ -1,13 +1,20 @@
 "use client";
 
 import {
+  Activity,
+  BarChart2,
+  DollarSign,
+  LayoutDashboard,
   LineChart,
-  Menu,
-  Moon,
-  Sun,
   Languages,
   LogOut,
+  Menu,
+  Moon,
+  Plus,
+  Sun,
+  TrendingUp,
   User as UserGlyph,
+  Wallet,
   type LucideIcon,
   type LucideProps,
 } from "lucide-react";
@@ -18,13 +25,20 @@ import { useSyncExternalStore } from "react";
  * Server Components. Keep the keys kebab-cased and stable.
  */
 const ICONS = {
+  activity: Activity,
+  "bar-chart-2": BarChart2,
+  "dollar-sign": DollarSign,
+  "layout-dashboard": LayoutDashboard,
   "line-chart": LineChart,
   menu: Menu,
   moon: Moon,
+  plus: Plus,
   sun: Sun,
   languages: Languages,
   "log-out": LogOut,
+  "trending-up": TrendingUp,
   user: UserGlyph,
+  wallet: Wallet,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

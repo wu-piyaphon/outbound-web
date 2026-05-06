@@ -1,4 +1,5 @@
-import { LogOut, User as UserIcon } from "lucide-react";
+import Link from "next/link";
+import { LayoutDashboard, LogOut, User as UserIcon } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 import { signOut } from "@/app/actions/auth";
@@ -17,9 +18,15 @@ interface UserMenuProps {
   user: User;
   lang: Locale;
   signOutLabel: string;
+  dashboardLabel: string;
 }
 
-export function UserMenu({ user, lang, signOutLabel }: UserMenuProps) {
+export function UserMenu({
+  user,
+  lang,
+  signOutLabel,
+  dashboardLabel,
+}: UserMenuProps) {
   const displayName =
     (user.user_metadata?.full_name as string | undefined) ??
     (user.user_metadata?.name as string | undefined) ??
@@ -46,6 +53,13 @@ export function UserMenu({ user, lang, signOutLabel }: UserMenuProps) {
           <UserIcon className="h-4 w-4" />
           <span className="truncate">{displayName}</span>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href={`/${lang}/dashboard`} className="cursor-pointer">
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            {dashboardLabel}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <form action={signOut.bind(null, lang)}>
           <DropdownMenuItem asChild>

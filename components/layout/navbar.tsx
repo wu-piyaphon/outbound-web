@@ -101,6 +101,7 @@ export function Navbar({ lang, dict, user }: NavbarProps) {
               user={user}
               lang={lang}
               signOutLabel={dict.auth.signOut}
+              dashboardLabel={dict.auth.dashboard}
             />
           ) : (
             <div className="hidden items-center gap-2 md:flex">
