@@ -28,6 +28,7 @@ export default async function DashboardLayout({
           overview: dict.dashboard.overview,
           trades: dict.dashboard.trades,
           signals: dict.dashboard.signals,
+          transfers: dict.dashboard.transfers,
         }}
       />
       <div className="flex-1">{children}</div>

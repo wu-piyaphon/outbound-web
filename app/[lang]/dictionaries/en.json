@@ -216,6 +216,32 @@
       "empty": "No signals recorded yet.",
       "yes": "Yes",
       "no": "No"
+    },
+    "transfers": "Transfers",
+    "transferLog": {
+      "title": "Account Transfers",
+      "subtitle": "Capital top-ups and withdrawals tracked against Alpaca trade slots",
+      "type": "Type",
+      "amountUsd": "Amount (USD)",
+      "amountThb": "Amount (THB)",
+      "rate": "Rate",
+      "feeTHB": "Fee THB",
+      "feeUSD": "Fee USD",
+      "tradesUsed": "Trades Used",
+      "createdAt": "Date",
+      "filterType": "All types",
+      "depositOnly": "Deposits",
+      "withdrawalOnly": "Withdrawals",
+      "noResults": "No transfers match the current filter.",
+      "empty": "No transfers recorded yet.",
+      "deposit": "Deposit",
+      "withdrawal": "Withdrawal",
+      "stats": {
+        "totalDeposited": "Total Deposited",
+        "totalFees": "Total Fees Paid",
+        "slotsUsed": "Trade Slots Used",
+        "count": "Transfers"
+      }
     }
   },
   "chart": {

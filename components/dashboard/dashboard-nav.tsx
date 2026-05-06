@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, BarChart2, LayoutDashboard } from "lucide-react";
+import { Activity, ArrowLeftRight, BarChart2, LayoutDashboard } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/lib/i18n/config";
@@ -13,6 +13,7 @@ type DashboardNavProps = {
     overview: string;
     trades: string;
     signals: string;
+    transfers: string;
   };
 };
 
@@ -36,6 +37,12 @@ export function DashboardNav({ lang, labels }: DashboardNavProps) {
       href: `/${lang}/dashboard/signals`,
       label: labels.signals,
       icon: Activity,
+      exact: false,
+    },
+    {
+      href: `/${lang}/dashboard/transfers`,
+      label: labels.transfers,
+      icon: ArrowLeftRight,
       exact: false,
     },
   ] as const;
