@@ -70,13 +70,13 @@ function getSystemSnapshot(): ResolvedTheme {
   return cachedSystem;
 }
 
-export interface UseThemeResult {
+export type UseThemeResult = {
   /** User preference: "light" | "dark" | "system". `null` until mounted. */
   theme: Theme | null;
   /** Effective theme actually applied. `null` until mounted. */
   resolvedTheme: ResolvedTheme | null;
   setTheme: (next: Theme) => void;
-}
+};
 
 export function useTheme(): UseThemeResult {
   const theme = useSyncExternalStore<Theme | null>(

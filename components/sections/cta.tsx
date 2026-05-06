@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 
-interface CtaProps {
+type CtaProps = {
   lang: Locale;
   dict: Dictionary;
-}
+};
 
 export function Cta({ lang, dict }: CtaProps) {
   return (

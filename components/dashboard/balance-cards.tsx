@@ -9,7 +9,7 @@ import {
 import { formatUsd } from "@/lib/format";
 import type { AccountTransfer, Trade } from "@/lib/types/database";
 
-interface BalanceCardsProps {
+type BalanceCardsProps = {
   transfers: AccountTransfer[];
   trades: Pick<Trade, "id" | "parent_id" | "side" | "status">[];
   labels: {
@@ -18,7 +18,7 @@ interface BalanceCardsProps {
     availableSlots: string;
     openPositions: string;
   };
-}
+};
 
 export function BalanceCards({ transfers, trades, labels }: BalanceCardsProps) {
   const deposits = transfers.filter((t) => t.type === "deposit");

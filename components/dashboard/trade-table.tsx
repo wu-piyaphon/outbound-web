@@ -34,7 +34,7 @@ type TradeRow = Pick<
   | "created_at"
 >;
 
-interface TradeTableProps {
+type TradeTableProps = {
   trades: TradeRow[];
   labels: {
     symbol: string;
@@ -55,7 +55,7 @@ interface TradeTableProps {
     noResults: string;
     empty: string;
   };
-}
+};
 
 function computePnL(
   trade: TradeRow,

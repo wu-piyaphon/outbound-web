@@ -9,9 +9,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 
-interface ReliabilityProps {
+type ReliabilityProps = {
   dict: Dictionary;
-}
+};
 
 const METRICS = [
   { key: "targetReturn", value: "2–3%" },

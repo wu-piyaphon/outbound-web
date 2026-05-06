@@ -27,7 +27,7 @@ type SignalRow = Pick<
   | "created_at"
 >;
 
-interface SignalTableProps {
+type SignalTableProps = {
   signals: SignalRow[];
   labels: {
     symbol: string;
@@ -49,7 +49,7 @@ interface SignalTableProps {
     yes: string;
     no: string;
   };
-}
+};
 
 export function SignalTable({ signals, labels }: SignalTableProps) {
   const [symbolFilter, setSymbolFilter] = useState("");

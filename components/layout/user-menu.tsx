@@ -14,12 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Locale } from "@/lib/i18n/config";
 
-interface UserMenuProps {
+type UserMenuProps = {
   user: User;
   lang: Locale;
   signOutLabel: string;
   dashboardLabel: string;
-}
+};
 
 export function UserMenu({
   user,

@@ -8,11 +8,11 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { publicEnv } from "@/lib/env";
 import type { Locale } from "@/lib/i18n/config";
 
-interface GoogleButtonProps {
+type GoogleButtonProps = {
   lang: Locale;
   label: string;
   errorMessage: string;
-}
+};
 
 export function GoogleButton({ lang, label, errorMessage }: GoogleButtonProps) {
   const [isLoading, setIsLoading] = useState(false);

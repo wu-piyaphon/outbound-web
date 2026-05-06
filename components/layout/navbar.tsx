@@ -16,11 +16,11 @@ import {
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 
-interface NavbarProps {
+type NavbarProps = {
   lang: Locale;
   dict: Dictionary;
   user: User | null;
-}
+};
 
 export function Navbar({ lang, dict, user }: NavbarProps) {
   const navLinks = [

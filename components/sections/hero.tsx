@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 
-interface HeroProps {
+type HeroProps = {
   lang: Locale;
   dict: Dictionary;
-}
+};
 
 export function Hero({ lang, dict }: HeroProps) {
   return (

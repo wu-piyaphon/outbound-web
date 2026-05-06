@@ -4,10 +4,10 @@ import { LineChart } from "lucide-react";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 
-interface FooterProps {
+type FooterProps = {
   lang: Locale;
   dict: Dictionary;
-}
+};
 
 export function Footer({ lang, dict }: FooterProps) {
   const year = new Date().getFullYear();

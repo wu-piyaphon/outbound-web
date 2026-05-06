@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n/config";
 
-interface LocaleSwitcherProps {
+type LocaleSwitcherProps = {
   current: Locale;
   label: string;
-}
+};
 
 export function LocaleSwitcher({ current, label }: LocaleSwitcherProps) {
   const pathname = usePathname();

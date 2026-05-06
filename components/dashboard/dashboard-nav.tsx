@@ -7,14 +7,14 @@ import { Activity, BarChart2, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/lib/i18n/config";
 
-interface DashboardNavProps {
+type DashboardNavProps = {
   lang: Locale;
   labels: {
     overview: string;
     trades: string;
     signals: string;
   };
-}
+};
 
 export function DashboardNav({ lang, labels }: DashboardNavProps) {
   const pathname = usePathname();

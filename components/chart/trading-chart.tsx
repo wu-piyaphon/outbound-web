@@ -22,7 +22,7 @@ import { sma } from "@/lib/indicators/sma";
 import type { Candle } from "@/lib/indicators/sma";
 import { cn } from "@/lib/utils";
 
-interface TradingChartProps {
+type TradingChartProps = {
   symbol: string;
   labels: {
     indicators: string;
@@ -32,13 +32,13 @@ interface TradingChartProps {
     loading: string;
     empty: string;
   };
-}
+};
 
-interface IndicatorState {
+type IndicatorState = {
   sma: boolean;
   ema: boolean;
   rsi: boolean;
-}
+};
 
 const INITIAL_INDICATORS: IndicatorState = { sma: true, ema: true, rsi: false };
 
@@ -267,12 +267,12 @@ export function TradingChart({ symbol, labels }: TradingChartProps) {
   );
 }
 
-interface IndicatorToggleProps {
+type IndicatorToggleProps = {
   active: boolean;
   color: string;
   onClick: () => void;
   children: React.ReactNode;
-}
+};
 
 function IndicatorToggle({
   active,

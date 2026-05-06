@@ -12,10 +12,10 @@ import { Button } from "@/components/ui/button";
 
 const SYMBOLS = ["AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "META"] as const;
 
-interface SymbolPickerProps {
+type SymbolPickerProps = {
   current: string;
   label: string;
-}
+};
 
 export function SymbolPicker({ current, label }: SymbolPickerProps) {
   const router = useRouter();

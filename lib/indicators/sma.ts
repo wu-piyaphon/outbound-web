@@ -1,15 +1,15 @@
-export interface IndicatorPoint {
+export type IndicatorPoint = {
   time: number; // unix seconds
   value: number;
-}
+};
 
-export interface Candle {
+export type Candle = {
   time: number; // unix seconds
   open: number;
   high: number;
   low: number;
   close: number;
-}
+};
 
 /** Simple Moving Average over the last `period` closes. */
 export function sma(candles: Candle[], period: number): IndicatorPoint[] {

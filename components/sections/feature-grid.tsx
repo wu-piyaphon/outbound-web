@@ -17,9 +17,9 @@ import {
 } from "@/components/ui/card";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 
-interface FeatureGridProps {
+type FeatureGridProps = {
   dict: Dictionary;
-}
+};
 
 const ICONS: Record<keyof Dictionary["features"]["items"], LucideIcon> = {
   execution: Gauge,

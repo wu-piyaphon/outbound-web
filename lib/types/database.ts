@@ -1,13 +1,13 @@
 export type TradeSide = "buy" | "sell";
 export type TradeStatus = "pending" | "open" | "filled" | "cancelled" | "rejected";
 
-export interface SignalIndicators {
+export type SignalIndicators = {
   ema: string;
   rsi: string;
   atr: string;
-}
+};
 
-export interface Signal {
+export type Signal = {
   id: string;
   symbol: string;
   side: TradeSide;
@@ -16,9 +16,9 @@ export interface Signal {
   is_executed: boolean;
   reasoning: string | null;
   created_at: string;
-}
+};
 
-export interface Trade {
+export type Trade = {
   id: string;
   parent_id: string | null;
   signal_id: string | null;
@@ -37,9 +37,9 @@ export interface Trade {
   metadata: Record<string, unknown>;
   filled_at: string | null;
   created_at: string;
-}
+};
 
-export interface AccountTransfer {
+export type AccountTransfer = {
   id: string;
   type: "deposit" | "withdrawal";
   amount_thb: string;
@@ -51,4 +51,4 @@ export interface AccountTransfer {
   remaining_trades: number | null;
   created_at: string;
   updated_at: string;
-}
+};

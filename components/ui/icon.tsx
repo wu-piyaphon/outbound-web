@@ -43,9 +43,9 @@ const ICONS = {
 
 export type IconName = keyof typeof ICONS;
 
-interface IconProps extends Omit<LucideProps, "ref"> {
+type IconProps = Omit<LucideProps, "ref"> & {
   name: IconName;
-}
+};
 
 const subscribe = () => () => {};
 const getServerSnapshot = () => false;
