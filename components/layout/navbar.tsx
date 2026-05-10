@@ -1,8 +1,6 @@
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
 
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
-import { UserMenu } from "@/components/layout/user-menu";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
@@ -19,15 +17,13 @@ import type { Dictionary } from "@/app/[lang]/dictionaries";
 type NavbarProps = {
   lang: Locale;
   dict: Dictionary;
-  user: User | null;
 };
 
-export function Navbar({ lang, dict, user }: NavbarProps) {
+export function Navbar({ lang, dict }: NavbarProps) {
   const navLinks = [
     { href: `/${lang}#features`, label: dict.nav.features },
     { href: `/${lang}#reliability`, label: dict.nav.reliability },
     { href: `/${lang}/chart`, label: dict.nav.chart },
-    { href: `/${lang}#pricing`, label: dict.nav.pricing },
   ] as const;
 
   return (
@@ -82,37 +78,9 @@ export function Navbar({ lang, dict, user }: NavbarProps) {
                     {link.label}
                   </Link>
                 ))}
-                {!user && (
-                  <div className="mt-4 flex flex-col gap-2">
-                    <Button asChild variant="outline">
-                      <Link href={`/${lang}/signin`}>{dict.nav.signIn}</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href={`/${lang}/signup`}>{dict.nav.signUp}</Link>
-                    </Button>
-                  </div>
-                )}
               </nav>
             </SheetContent>
           </Sheet>
-
-          {user ? (
-            <UserMenu
-              user={user}
-              lang={lang}
-              signOutLabel={dict.auth.signOut}
-              dashboardLabel={dict.auth.dashboard}
-            />
-          ) : (
-            <div className="hidden items-center gap-2 md:flex">
-              <Button asChild variant="ghost" size="sm">
-                <Link href={`/${lang}/signin`}>{dict.nav.signIn}</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href={`/${lang}/signup`}>{dict.nav.signUp}</Link>
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </header>

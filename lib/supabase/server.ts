@@ -1,9 +1,7 @@
 import "server-only";
 
-import { cache } from "react";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import type { User } from "@supabase/supabase-js";
 import { publicEnv } from "@/lib/env";
 
 export async function createSupabaseServerClient() {
@@ -30,13 +28,3 @@ export async function createSupabaseServerClient() {
     },
   );
 }
-
-// React.cache de-dupes per request: any RSC / Server Action calling
-// getCurrentUser() within the same request shares one Supabase round-trip.
-export const getCurrentUser = cache(async (): Promise<User | null> => {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-});

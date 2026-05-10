@@ -20,7 +20,6 @@ export function Footer({ lang, dict }: FooterProps) {
         { href: `/${lang}#features`, label: dict.footer.links.features },
         { href: `/${lang}#reliability`, label: dict.footer.links.reliability },
         { href: `/${lang}/chart`, label: dict.footer.links.chart },
-        { href: `/${lang}#pricing`, label: dict.footer.links.pricing },
       ],
     },
     {

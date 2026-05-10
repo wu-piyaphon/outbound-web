@@ -3,9 +3,6 @@
     "features": "Features",
     "reliability": "Reliability",
     "chart": "Live Chart",
-    "pricing": "Pricing",
-    "signIn": "Sign in",
-    "signUp": "Get started",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
@@ -13,7 +10,7 @@
     "eyebrow": "Algorithmic trading, transparent by design",
     "title": "Outbound trades the markets while you sleep.",
     "subtitle": "An automated stock trading bot targeting 2–3% monthly net returns on Alpaca Markets — with every fee tracked, so the number you see is the number you keep.",
-    "primaryCta": "Start trading",
+    "primaryCta": "Explore the live chart",
     "secondaryCta": "See how it works"
   },
   "features": {
@@ -109,12 +106,6 @@
       }
     }
   },
-  "cta": {
-    "title": "Ready to put your capital to work?",
-    "subtitle": "Sign in with Google and start with a paper-trading account in under a minute.",
-    "primary": "Create your account",
-    "secondary": "Explore the live chart"
-  },
   "footer": {
     "tagline": "Automated trading with full fee transparency.",
     "product": "Product",
@@ -124,7 +115,6 @@
       "features": "Features",
       "reliability": "Reliability",
       "chart": "Live chart",
-      "pricing": "Pricing",
       "about": "About",
       "contact": "Contact",
       "terms": "Terms of service",
@@ -133,27 +123,6 @@
     },
     "disclaimer": "Trading involves substantial risk of loss and is not suitable for every investor. Past performance is not indicative of future results.",
     "copyright": "© {year} Outbound. All rights reserved."
-  },
-  "auth": {
-    "signIn": {
-      "title": "Welcome back",
-      "subtitle": "Sign in to your Outbound account",
-      "google": "Continue with Google",
-      "noAccount": "Don't have an account?",
-      "signUpLink": "Sign up"
-    },
-    "signUp": {
-      "title": "Create your account",
-      "subtitle": "Get started with Outbound in seconds",
-      "google": "Sign up with Google",
-      "haveAccount": "Already have an account?",
-      "signInLink": "Sign in"
-    },
-    "terms": "By continuing you agree to our Terms of Service and Privacy Policy.",
-    "signOut": "Sign out",
-    "dashboard": "Dashboard",
-    "errorTitle": "Authentication failed",
-    "errorMessage": "We couldn't sign you in. Please try again."
   },
   "dashboard": {
     "overview": "Overview",

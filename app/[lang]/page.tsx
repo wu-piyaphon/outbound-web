@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 
-import { Cta } from "@/components/sections/cta";
 import { FeatureGrid } from "@/components/sections/feature-grid";
 import { Hero } from "@/components/sections/hero";
 import { Reliability } from "@/components/sections/reliability";
@@ -19,7 +18,6 @@ export default async function LandingPage({ params }: PageProps<"/[lang]">) {
       <Hero lang={lang} dict={dict} />
       <FeatureGrid dict={dict} />
       <Reliability dict={dict} />
-      <Cta lang={lang} dict={dict} />
     </>
   );
 }

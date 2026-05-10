@@ -1,10 +1,9 @@
 import type React from "react";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { getDictionary } from "@/app/[lang]/dictionaries";
 import { isLocale } from "@/lib/i18n/config";
-import { getCurrentUser } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
   children,
@@ -16,9 +15,7 @@ export default async function DashboardLayout({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
-  const [user, dict] = await Promise.all([getCurrentUser(), getDictionary(lang)]);
-
-  if (!user) redirect(`/${lang}/signin`);
+  const dict = await getDictionary(lang);
 
   return (
     <div className="flex flex-1 flex-col">

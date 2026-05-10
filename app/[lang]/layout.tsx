@@ -6,7 +6,6 @@ import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { LOCALES, isLocale } from "@/lib/i18n/config";
-import { getCurrentUser } from "@/lib/supabase/server";
 import { getServerTheme } from "@/lib/theme/server";
 import { getDictionary } from "./dictionaries";
 import "../globals.css";
@@ -46,10 +45,9 @@ export default async function LocaleLayout({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
-  const [dict, serverTheme, user] = await Promise.all([
+  const [dict, serverTheme] = await Promise.all([
     getDictionary(lang),
     getServerTheme(),
-    getCurrentUser(),
   ]);
 
   // Apply explicit light/dark class on <html> when we know the user's choice;
@@ -70,7 +68,7 @@ export default async function LocaleLayout({
       }
     >
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
-        <Navbar lang={lang} dict={dict} user={user} />
+        <Navbar lang={lang} dict={dict} />
         <main className="flex flex-1 flex-col">{children}</main>
         <Footer lang={lang} dict={dict} />
         <Toaster />
