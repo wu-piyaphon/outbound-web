@@ -23,7 +23,7 @@ export function Navbar({ lang, dict }: NavbarProps) {
   const navLinks = [
     { href: `/${lang}#features`, label: dict.nav.features },
     { href: `/${lang}#reliability`, label: dict.nav.reliability },
-    { href: `/${lang}/chart`, label: dict.nav.chart },
+    { href: `/${lang}/dashboard`, label: dict.nav.dashboard },
   ] as const;
 
   return (

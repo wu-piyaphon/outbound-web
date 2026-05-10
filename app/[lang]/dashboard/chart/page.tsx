@@ -7,10 +7,13 @@ import { isLocale } from "@/lib/i18n/config";
 
 const DEFAULT_SYMBOL = "AAPL";
 
-export default async function ChartPage({
+export default async function DashboardChartPage({
   params,
   searchParams,
-}: PageProps<"/[lang]/chart">) {
+}: {
+  params: Promise<{ lang: string }>;
+  searchParams: Promise<{ symbol?: string | string[] }>;
+}) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
@@ -21,9 +24,9 @@ export default async function ChartPage({
   const dict = await getDictionary(lang);
 
   return (
-    <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight">
           {dict.chart.title}
         </h1>
         <p className="text-muted-foreground text-sm">{dict.chart.subtitle}</p>

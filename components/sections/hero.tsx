@@ -31,7 +31,7 @@ export function Hero({ lang, dict }: HeroProps) {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="gap-2">
-              <Link href={`/${lang}/chart`}>
+              <Link href={`/${lang}/dashboard`}>
                 {dict.hero.primaryCta}
                 <ArrowRight className="h-4 w-4" />
               </Link>

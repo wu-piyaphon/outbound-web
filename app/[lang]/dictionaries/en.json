@@ -2,7 +2,7 @@
   "nav": {
     "features": "Features",
     "reliability": "Reliability",
-    "chart": "Live Chart",
+    "dashboard": "Dashboard",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
@@ -10,7 +10,7 @@
     "eyebrow": "Algorithmic trading, transparent by design",
     "title": "Outbound trades the markets while you sleep.",
     "subtitle": "An automated stock trading bot targeting 2–3% monthly net returns on Alpaca Markets — with every fee tracked, so the number you see is the number you keep.",
-    "primaryCta": "Explore the live chart",
+    "primaryCta": "Explore the dashboard",
     "secondaryCta": "See how it works"
   },
   "features": {
