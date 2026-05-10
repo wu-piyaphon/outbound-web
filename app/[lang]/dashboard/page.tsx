@@ -2,14 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BalanceCards } from "@/components/dashboard/balance-cards";
+import { ChartWithWatchlist } from "@/components/dashboard/chart-with-watchlist";
 import { getDictionary } from "@/app/[lang]/dictionaries";
 import { isLocale } from "@/lib/i18n/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import {
-  formatUsdStr,
-  formatThbStr,
-  formatDateTime,
-} from "@/lib/format";
+import { formatUsdStr } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
   TRADE_STATUS_CLASSES,
   sideBadgeClass,
@@ -77,18 +75,36 @@ export default async function DashboardPage({
 
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">{d.title}</h1>
         <p className="text-muted-foreground mt-1 text-sm">{d.subtitle}</p>
       </div>
 
+      {/* Stat cards */}
       <BalanceCards
         transfers={(transfers ?? []) as AccountTransfer[]}
         trades={allTrades}
         labels={d.stats}
       />
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      {/* Chart + Watchlist */}
+      <div className="mt-6">
+        <ChartWithWatchlist
+          chartLabels={{
+            indicators: dict.chart.indicators.title,
+            sma: dict.chart.indicators.sma,
+            ema: dict.chart.indicators.ema,
+            rsi: dict.chart.indicators.rsi,
+            loading: dict.chart.loading,
+            empty: dict.chart.empty,
+          }}
+          watchlistHeading={d.watchlist}
+        />
+      </div>
+
+      {/* Recent activity */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {/* Recent Trades */}
         <div className="rounded-xl border">
           <div className="flex items-center justify-between border-b px-5 py-4">
@@ -170,15 +186,14 @@ export default async function DashboardPage({
                       {formatUsdStr(signal.price_at_signal)}
                     </span>
                     <span
-                      className={`rounded px-2 py-0.5 text-xs font-medium ${
+                      className={cn(
+                        "rounded px-2 py-0.5 text-xs font-medium",
                         signal.is_executed
                           ? BOOL_TRUE_BADGE_CLASS
-                          : BOOL_FALSE_BADGE_CLASS
-                      }`}
+                          : BOOL_FALSE_BADGE_CLASS,
+                      )}
                     >
-                      {signal.is_executed
-                        ? d.signalLog.yes
-                        : d.signalLog.no}
+                      {signal.is_executed ? d.signalLog.yes : d.signalLog.no}
                     </span>
                   </div>
                 </li>
@@ -187,58 +202,6 @@ export default async function DashboardPage({
           )}
         </div>
       </div>
-
-      {/* Account Transfers */}
-      {transfers && transfers.length > 0 && (
-        <div className="mt-8 rounded-xl border">
-          <div className="border-b px-5 py-4">
-            <h2 className="text-sm font-semibold">Account Transfers</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-muted-foreground border-b text-xs">
-                  <th className="px-5 py-3 text-left font-medium">Type</th>
-                  <th className="px-5 py-3 text-right font-medium">USD Amount</th>
-                  <th className="px-5 py-3 text-right font-medium">THB Amount</th>
-                  <th className="px-5 py-3 text-right font-medium">Exchange Rate</th>
-                  <th className="px-5 py-3 text-right font-medium">Target / Remaining</th>
-                  <th className="px-5 py-3 text-right font-medium">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {(transfers as AccountTransfer[]).map((t) => (
-                  <tr key={t.id} className="hover:bg-muted/30">
-                    <td className="px-5 py-3">
-                      <span
-                        className={`inline-flex rounded px-2 py-0.5 text-xs font-semibold capitalize ${sideBadgeClass(t.type === "deposit" ? "buy" : "sell")}`}
-                      >
-                        {t.type}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-right font-mono">
-                      {formatUsdStr(t.amount_usd)}
-                    </td>
-                    <td className="text-muted-foreground px-5 py-3 text-right font-mono">
-                      {formatThbStr(t.amount_thb)}
-                    </td>
-                    <td className="text-muted-foreground px-5 py-3 text-right font-mono">
-                      {parseFloat(t.exchange_rate).toFixed(4)}
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      <span className="font-medium">{t.remaining_trades ?? 0}</span>
-                      <span className="text-muted-foreground"> / {t.target_trades}</span>
-                    </td>
-                    <td className="text-muted-foreground px-5 py-3 text-right text-xs">
-                      {formatDateTime(t.created_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

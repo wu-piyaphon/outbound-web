@@ -2,6 +2,23 @@
 
 import type { Candle } from "@/lib/indicators/sma";
 
+export type LatestPrice = {
+  symbol: string;
+  price: number;
+  prevClose: number;
+  change: number;
+  changePct: number;
+};
+
+export async function getLatestPrice(symbol: string): Promise<LatestPrice> {
+  const candles = await getCandles(symbol, 2);
+  const latest = candles[candles.length - 1];
+  const prev = candles[candles.length - 2] ?? latest;
+  const change = round(latest.close - prev.close);
+  const changePct = round((change / prev.close) * 100);
+  return { symbol, price: latest.close, prevClose: prev.close, change, changePct };
+}
+
 /**
  * Returns mock OHLC candles for v1. Swap with Alpaca historical data later.
  * Uses a deterministic seed per symbol so SSR + client renders stay consistent.
