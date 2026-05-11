@@ -5,6 +5,7 @@ import { useSyncExternalStore } from "react";
 import {
   THEME_COOKIE_MAX_AGE,
   THEME_COOKIE_NAME,
+  escapeRegExpCookieName,
   isTheme,
   type ResolvedTheme,
   type Theme,
@@ -20,7 +21,7 @@ export {
 function readCookieTheme(): Theme {
   if (typeof document === "undefined") return "system";
   const match = document.cookie.match(
-    new RegExp(`(?:^|; )${THEME_COOKIE_NAME}=([^;]*)`),
+    new RegExp(`(?:^|; )${escapeRegExpCookieName(THEME_COOKIE_NAME)}=([^;]*)`),
   );
   const value = match ? decodeURIComponent(match[1]) : null;
   return isTheme(value) ? value : "system";

@@ -111,8 +111,7 @@ export function TradingChart({ symbol, labels }: TradingChartProps) {
       emaSeriesRef.current = null;
       rsiSeriesRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isDark]);
 
   // Apply theme changes without re-mounting.
   useEffect(() => {

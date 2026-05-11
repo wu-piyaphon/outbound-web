@@ -6,7 +6,10 @@ import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { LOCALES, isLocale } from "@/lib/i18n/config";
-import { THEME_COOKIE_NAME } from "@/lib/theme/shared";
+import {
+  THEME_COOKIE_NAME,
+  escapeRegExpCookieName,
+} from "@/lib/theme/shared";
 import { getDictionary } from "./dictionaries";
 import "../globals.css";
 
@@ -15,7 +18,8 @@ import "../globals.css";
 // color-scheme to <html>. Inlined here so the layout stays fully static —
 // reading cookies() in the layout would force the whole route dynamic under
 // cacheComponents.
-const themeInitScript = `(function(){try{var m=document.cookie.match(/(?:^|; )${THEME_COOKIE_NAME}=([^;]*)/);var p=m?decodeURIComponent(m[1]):'system';var r=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;var e=document.documentElement;if(r==='dark')e.classList.add('dark');e.style.colorScheme=r;}catch(_){}})();`;
+const themeCookiePatternSource = escapeRegExpCookieName(THEME_COOKIE_NAME);
+const themeInitScript = `(function(){try{var m=document.cookie.match(/(?:^|; )${themeCookiePatternSource}=([^;]*)/);var p=m?decodeURIComponent(m[1]):'system';var r=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;var e=document.documentElement;if(r==='dark')e.classList.add('dark');e.style.colorScheme=r;}catch(_){}})();`;
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({

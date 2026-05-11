@@ -129,6 +129,8 @@
     "trades": "Trades",
     "signals": "Signals",
     "watchlist": "Watchlist",
+    "watchlistStarred": "Starred",
+    "watchlistBrowse": "All symbols",
     "title": "Dashboard",
     "subtitle": "Your automated trading activity at a glance",
     "stats": {

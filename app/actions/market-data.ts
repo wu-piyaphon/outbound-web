@@ -62,6 +62,37 @@ export async function getLatestPrice(symbol: string): Promise<LatestPrice> {
   };
 }
 
+/** Batch latest quotes in one server round-trip (parallel candle fetches). */
+export async function getLatestPrices(
+  symbols: string[],
+): Promise<Record<string, LatestPrice>> {
+  const unique = [...new Set(symbols.filter(Boolean))];
+  if (unique.length === 0) return {};
+
+  const entries = await Promise.all(
+    unique.map(async (symbol) => {
+      const latest = await getLatestPrice(symbol);
+      return [symbol, latest] as const;
+    }),
+  );
+
+  return Object.fromEntries(entries);
+}
+
+export async function resolveAssetsForSymbols(
+  symbols: string[],
+): Promise<AlpacaAsset[]> {
+  if (symbols.length === 0) return [];
+  const all = await getAllAssets();
+  const bySymbol = new Map(all.map((a) => [a.symbol, a]));
+  const out: AlpacaAsset[] = [];
+  for (const s of symbols) {
+    const a = bySymbol.get(s);
+    if (a) out.push(a);
+  }
+  return out;
+}
+
 /**
  * Returns mock OHLC candles for v1. Swap with Alpaca historical data later.
  * Uses a deterministic seed per symbol so SSR + client renders stay consistent.

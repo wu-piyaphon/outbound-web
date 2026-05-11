@@ -1,89 +1,137 @@
 "use client";
 
 import { Search, Star, TrendingDown, TrendingUp, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import useSWRInfinite from "swr/infinite";
 
 import {
-  getLatestPrice,
+  getLatestPrices,
   getWatchlist,
+  resolveAssetsForSymbols,
   searchSymbols,
 } from "@/app/actions/market-data";
+import type { LatestPrice, SymbolPage } from "@/app/actions/market-data";
 import type { AlpacaAsset } from "@/lib/alpaca";
 import { cn } from "@/lib/utils";
 
-// ---------------------------------------------------------------------------
-// Debounce hook
-// ---------------------------------------------------------------------------
-function useDebounce<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
-  return debounced;
-}
+const EMPTY_STARRED: string[] = [];
 
-// ---------------------------------------------------------------------------
-// Watchlist source — pulled from Supabase `watchlists` (is_active = true).
-// ---------------------------------------------------------------------------
 export function useWatchlist() {
-  const { data } = useSWR("watchlist", getWatchlist, {
+  const { data, isLoading } = useSWR("watchlist", getWatchlist, {
     revalidateOnFocus: false,
   });
-  return { starred: data ?? [] };
+  return { starred: data ?? EMPTY_STARRED, isLoading };
 }
 
-// ---------------------------------------------------------------------------
-// Watchlist component
-// ---------------------------------------------------------------------------
 type WatchlistProps = {
   selectedSymbol: string;
   onSelect: (symbol: string) => void;
   heading: string;
+  starredSectionHeading: string;
+  browseSectionHeading: string;
 };
 
 export function Watchlist({
   selectedSymbol,
   onSelect,
   heading,
+  starredSectionHeading,
+  browseSectionHeading,
 }: WatchlistProps) {
   const [query, setQuery] = useState("");
-  const debouncedQuery = useDebounce(query, 300);
-  const { starred } = useWatchlist();
+  const deferredQuery = useDeferredValue(query);
+  const { starred, isLoading: watchlistLoading } = useWatchlist();
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // useSWRInfinite — one page = 25 assets
+  const starredSet = new Set(starred);
+
+  const pinnedKey =
+    starred.length > 0 && !deferredQuery.trim()
+      ? (["watchlist-pinned", ...[...starred].sort()] as const)
+      : null;
+
+  const { data: pinnedAssets } = useSWR(
+    pinnedKey,
+    () => resolveAssetsForSymbols(starred),
+    { revalidateOnFocus: false },
+  );
+
   const { data, setSize, size, isLoading, isValidating } = useSWRInfinite(
-    (pageIndex, prev: Awaited<ReturnType<typeof searchSymbols>> | null) => {
+    (pageIndex, prev: SymbolPage | null) => {
       if (prev && !prev.hasMore) return null;
-      return [debouncedQuery, pageIndex] as const;
+      return [deferredQuery, pageIndex] as const;
     },
     ([q, page]) => searchSymbols(q, page),
     { revalidateFirstPage: false, revalidateOnFocus: false },
   );
 
-  const allAssets: AlpacaAsset[] = data ? data.flatMap((p) => p.assets) : [];
+  const infiniteAssets: AlpacaAsset[] = data
+    ? data.flatMap((p) => p.assets)
+    : [];
+
+  const mainListAssets = !deferredQuery.trim()
+    ? infiniteAssets.filter((a) => !starredSet.has(a.symbol))
+    : infiniteAssets;
+
+  const symbolsForPrices = (() => {
+    const u = new Set<string>();
+    if (!deferredQuery.trim() && pinnedAssets?.length) {
+      for (const a of pinnedAssets) u.add(a.symbol);
+    }
+    for (const a of mainListAssets) u.add(a.symbol);
+    return [...u];
+  })();
+
+  const priceCacheKey =
+    symbolsForPrices.length > 0
+      ? [...symbolsForPrices].sort().join("\0")
+      : null;
+
+  const { data: priceMap, isLoading: pricesLoading } = useSWR(
+    priceCacheKey ? ["latest-prices", priceCacheKey] : null,
+    () => getLatestPrices(symbolsForPrices),
+    { revalidateOnFocus: false, dedupingInterval: 60_000 },
+  );
+
   const hasMore = data ? (data[data.length - 1]?.hasMore ?? true) : true;
   const showLoadingMore = isValidating && (data?.length ?? 0) > 0;
 
-  // Starred assets always float to the top within current page results.
-  const sorted = [...allAssets].sort((a, b) => {
-    const aS = starred.includes(a.symbol);
-    const bS = starred.includes(b.symbol);
-    if (aS !== bS) return aS ? -1 : 1;
-    return 0;
-  });
+  const showPinnedSection =
+    !deferredQuery.trim() && (pinnedAssets?.length ?? 0) > 0;
 
-  // IntersectionObserver — load next page when sentinel enters viewport.
+  const pinnedLoading =
+    starred.length > 0 &&
+    !deferredQuery.trim() &&
+    pinnedAssets === undefined &&
+    !watchlistLoading;
+
+  const hasMainRows = mainListAssets.length > 0;
+  const needsMainInfinite =
+    !deferredQuery.trim() &&
+    hasMore &&
+    (hasMainRows || (data?.length ?? 0) > 0);
+  const showMainUl =
+    !!deferredQuery.trim() && (hasMainRows || showLoadingMore)
+      ? true
+      : hasMainRows || showLoadingMore || needsMainInfinite;
+  const hasAnyRows = hasMainRows || showPinnedSection;
+  const showInitialSkeleton =
+    (isLoading && !hasAnyRows && infiniteAssets.length === 0) || pinnedLoading;
+
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !isValidating && hasMore) {
+        const pagesReady = data?.length === size;
+        if (
+          entry.isIntersecting &&
+          pagesReady &&
+          !isValidating &&
+          hasMore
+        ) {
           setSize((s) => s + 1);
         }
       },
@@ -92,33 +140,54 @@ export function Watchlist({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [isValidating, hasMore, setSize]);
+  }, [data?.length, hasMore, isValidating, setSize, size]);
 
-  // Reset to page 1 when the debounced query changes.
   useEffect(() => {
     setSize(1);
-  }, [debouncedQuery, setSize]);
+  }, [deferredQuery, setSize]);
+
+  const idleList = !isLoading && !isValidating && !pinnedLoading;
+
+  const emptyMessage = (() => {
+    if (!idleList || hasAnyRows || showInitialSkeleton) return null;
+    if (deferredQuery.trim()) {
+      return `No symbols match \u201c${deferredQuery}\u201d`;
+    }
+    if (!deferredQuery.trim() && infiniteAssets.length === 0) {
+      return "No symbols available. Check your Alpaca API keys.";
+    }
+    return null;
+  })();
+
+  const headingId = "watchlist-panel-title";
+  const searchId = "watchlist-search";
 
   return (
-    <div className="flex h-170 flex-col overflow-hidden rounded-xl border">
-      {/* Header */}
+    <div className="flex max-h-[80vh] min-h-0 flex-col overflow-hidden rounded-xl border lg:h-[42rem]">
       <div className="shrink-0 border-b px-4 py-3">
-        <h2 className="text-sm font-semibold">{heading}</h2>
+        <h2 id={headingId} className="text-sm font-semibold">
+          {heading}
+        </h2>
       </div>
 
-      {/* Search */}
       <div className="shrink-0 border-b px-3 py-2">
         <div className="relative flex items-center">
-          <Search className="text-muted-foreground pointer-events-none absolute left-2.5 h-3.5 w-3.5" />
+          <Search
+            className="text-muted-foreground pointer-events-none absolute left-2.5 h-3.5 w-3.5"
+            aria-hidden
+          />
           <input
-            type="text"
+            id={searchId}
+            type="search"
+            role="searchbox"
+            aria-labelledby={headingId}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search symbol or company…"
             className={cn(
               "w-full rounded-md bg-transparent py-1.5 pr-7 pl-8 text-sm",
               "placeholder:text-muted-foreground",
-              "focus-visible:ring-primary focus:outline-none focus-visible:ring-1",
+              "focus:outline-none focus-visible:ring-1 focus-visible:ring-primary",
             )}
             spellCheck={false}
           />
@@ -135,51 +204,76 @@ export function Watchlist({
         </div>
       </div>
 
-      {/* List */}
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {isLoading && allAssets.length === 0 ? (
-          // Initial load skeletons
+        {showInitialSkeleton ? (
           <ul className="flex flex-col divide-y">
             {Array.from({ length: 6 }).map((_, i) => (
-              <SkeletonRow key={i} />
+              <SkeletonRow key={`skel-initial-${i}`} />
             ))}
           </ul>
-        ) : sorted.length > 0 ? (
-          <ul className="flex flex-col divide-y">
-            {sorted.map((asset) => (
-              <WatchlistRow
-                key={asset.symbol}
-                asset={asset}
-                isActive={asset.symbol === selectedSymbol}
-                isStarred={starred.includes(asset.symbol)}
-                onSelect={onSelect}
-              />
-            ))}
+        ) : hasAnyRows || showLoadingMore || showMainUl ? (
+          <>
+            {showPinnedSection ? (
+              <>
+                <div className="bg-muted/30 text-muted-foreground border-b px-4 py-2 text-xs font-medium">
+                  {starredSectionHeading}
+                </div>
+                <ul className="flex flex-col divide-y">
+                  {pinnedAssets!.map((asset) => (
+                    <WatchlistRow
+                      key={`pinned-${asset.symbol}`}
+                      asset={asset}
+                      isActive={asset.symbol === selectedSymbol}
+                      isStarred
+                      onSelect={onSelect}
+                      price={priceMap?.[asset.symbol]}
+                      priceLoading={pricesLoading && !priceMap?.[asset.symbol]}
+                    />
+                  ))}
+                </ul>
+                {!deferredQuery.trim() && showMainUl ? (
+                  <div className="bg-muted/30 text-muted-foreground border-b border-t px-4 py-2 text-xs font-medium">
+                    {browseSectionHeading}
+                  </div>
+                ) : null}
+              </>
+            ) : null}
 
-            {/* Loading-more skeletons */}
-            {showLoadingMore &&
-              Array.from({ length: 3 }).map((_, i) => (
-                <SkeletonRow key={`loading-${i}`} />
-              ))}
+            {showMainUl ? (
+              <ul className="flex flex-col divide-y">
+                {mainListAssets.map((asset) => (
+                  <WatchlistRow
+                    key={asset.symbol}
+                    asset={asset}
+                    isActive={asset.symbol === selectedSymbol}
+                    isStarred={starredSet.has(asset.symbol)}
+                    onSelect={onSelect}
+                    price={priceMap?.[asset.symbol]}
+                    priceLoading={pricesLoading && !priceMap?.[asset.symbol]}
+                  />
+                ))}
 
-            {/* Sentinel — triggers next page load */}
-            <div ref={sentinelRef} className="h-1" aria-hidden />
-          </ul>
-        ) : (
+                {showLoadingMore &&
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <SkeletonRow key={`skel-more-${i}`} />
+                  ))}
+
+                <li className="list-none p-0" role="presentation">
+                  <div ref={sentinelRef} className="h-1" aria-hidden />
+                </li>
+              </ul>
+            ) : null}
+          </>
+        ) : emptyMessage ? (
           <p className="text-muted-foreground px-4 py-8 text-center text-xs">
-            {size > 0
-              ? `No symbols match \u201c${debouncedQuery}\u201d`
-              : "No symbols available. Check your Alpaca API keys."}
+            {emptyMessage}
           </p>
-        )}
+        ) : null}
       </div>
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Skeleton row
-// ---------------------------------------------------------------------------
 function SkeletonRow() {
   return (
     <li className="flex items-center gap-2 px-4 py-3">
@@ -196,14 +290,13 @@ function SkeletonRow() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Row
-// ---------------------------------------------------------------------------
 type WatchlistRowProps = {
   asset: AlpacaAsset;
   isActive: boolean;
   isStarred: boolean;
   onSelect: (symbol: string) => void;
+  price: LatestPrice | undefined;
+  priceLoading: boolean;
 };
 
 function WatchlistRow({
@@ -211,14 +304,10 @@ function WatchlistRow({
   isActive,
   isStarred,
   onSelect,
+  price,
+  priceLoading,
 }: WatchlistRowProps) {
-  const { data, isLoading: priceLoading } = useSWR(
-    ["latest-price", asset.symbol],
-    () => getLatestPrice(asset.symbol),
-    { revalidateOnFocus: false, dedupingInterval: 60_000 },
-  );
-
-  const isUp = (data?.change ?? 0) >= 0;
+  const isUp = (price?.change ?? 0) >= 0;
 
   return (
     <li
@@ -227,28 +316,26 @@ function WatchlistRow({
         isActive && "border-l-primary bg-muted/30 border-l-2",
       )}
     >
-      {/* Star indicator — read-only; sourced from Supabase `watchlists` */}
       <span
         aria-hidden="true"
         className={cn(
-          "flex shrink-0 items-center px-3 py-3",
-          isStarred ? "text-amber-400" : "text-muted-foreground/40",
+          "text-muted-foreground/35 flex shrink-0 items-center px-3 py-3",
+          isStarred && "text-muted-foreground/70",
         )}
       >
         <Star
           className="h-3.5 w-3.5"
           fill={isStarred ? "currentColor" : "none"}
-          strokeWidth={isStarred ? 0 : 1.5}
+          strokeWidth={isStarred ? 0 : 1.25}
         />
       </span>
 
-      {/* Symbol + company name — selects chart */}
       <button
         type="button"
         onClick={() => onSelect(asset.symbol)}
         className={cn(
           "flex min-w-0 flex-1 items-center justify-between gap-3 py-3 pr-4 text-left transition-colors",
-          "hover:bg-muted/40 focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
+          "hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
           isActive ? "pl-0" : "pl-1",
         )}
       >
@@ -266,10 +353,10 @@ function WatchlistRow({
             <div className="bg-muted h-3.5 w-14 animate-pulse rounded" />
             <div className="bg-muted h-2.5 w-10 animate-pulse rounded" />
           </div>
-        ) : data ? (
+        ) : price ? (
           <div className="flex shrink-0 flex-col items-end gap-0.5">
             <span className="font-mono text-sm font-medium tabular-nums">
-              ${data.price.toFixed(2)}
+              ${price.price.toFixed(2)}
             </span>
             <span
               className={cn(
@@ -283,7 +370,7 @@ function WatchlistRow({
                 <TrendingDown className="h-3 w-3" />
               )}
               {isUp ? "+" : ""}
-              {data.changePct.toFixed(2)}%
+              {price.changePct.toFixed(2)}%
             </span>
           </div>
         ) : null}

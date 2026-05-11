@@ -1,10 +1,14 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { TransferTable } from "@/components/dashboard/transfer-table";
+import type { Dictionary } from "@/app/[lang]/dictionaries";
 import { getDictionary } from "@/app/[lang]/dictionaries";
 import { isLocale } from "@/lib/i18n/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AccountTransfer } from "@/lib/types/database";
+
+import { TableSkeleton } from "../_skeletons";
 
 export default async function TransfersPage({
   params,
@@ -14,20 +18,7 @@ export default async function TransfersPage({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
-  const [dict, supabase] = await Promise.all([
-    getDictionary(lang),
-    createSupabaseServerClient(),
-  ]);
-
-  const { data: transfersRaw } = await supabase
-    .from("account_transfers")
-    .select(
-      "id, type, amount_thb, amount_usd, fee_thb, fee_usd, exchange_rate, target_trades, remaining_trades, created_at, updated_at",
-    )
-    .order("created_at", { ascending: false });
-
-  const transfers = (transfersRaw ?? []) as AccountTransfer[];
-
+  const dict = await getDictionary(lang);
   const d = dict.dashboard.transferLog;
 
   return (
@@ -36,7 +27,30 @@ export default async function TransfersPage({
         <h1 className="text-2xl font-semibold tracking-tight">{d.title}</h1>
         <p className="text-muted-foreground mt-1 text-sm">{d.subtitle}</p>
       </div>
-      <TransferTable transfers={transfers} labels={d} />
+      <Suspense fallback={<TableSkeleton />}>
+        <TransfersTable labels={d} />
+      </Suspense>
     </div>
   );
+}
+
+async function TransfersTable({
+  labels,
+}: {
+  labels: Dictionary["dashboard"]["transferLog"];
+}) {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: transfersRaw, error } = await supabase
+    .from("account_transfers")
+    .select(
+      "id, type, amount_thb, amount_usd, fee_thb, fee_usd, exchange_rate, target_trades, remaining_trades, created_at, updated_at",
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) console.error("account_transfers:", error);
+
+  const transfers = (transfersRaw ?? []) as AccountTransfer[];
+
+  return <TransferTable transfers={transfers} labels={labels} />;
 }

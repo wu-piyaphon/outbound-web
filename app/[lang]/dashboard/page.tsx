@@ -4,8 +4,10 @@ import { Suspense } from "react";
 
 import { BalanceCards } from "@/components/dashboard/balance-cards";
 import { ChartWithWatchlist } from "@/components/dashboard/chart-with-watchlist";
+import type { Dictionary } from "@/app/[lang]/dictionaries";
 import { getDictionary } from "@/app/[lang]/dictionaries";
-import { isLocale, type Locale } from "@/lib/i18n/config";
+import type { Locale } from "@/lib/i18n/config";
+import { isLocale } from "@/lib/i18n/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatUsdStr } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -17,11 +19,6 @@ import {
 } from "@/lib/dashboard/constants";
 import type { AccountTransfer, Signal, Trade } from "@/lib/types/database";
 
-// ---------------------------------------------------------------------------
-// Page shell — only awaits the static dictionary (module import, not a fetch).
-// The two Suspense boundaries below let PPR stream the Supabase sections
-// progressively without blocking the initial paint.
-// ---------------------------------------------------------------------------
 export default async function DashboardPage({
   params,
 }: {
@@ -43,7 +40,7 @@ export default async function DashboardPage({
 
       {/* Stat cards — Supabase data, streamed via Suspense */}
       <Suspense fallback={<StatsSkeleton />}>
-        <DashboardStats lang={lang} />
+        <DashboardStats statsLabels={d.stats} />
       </Suspense>
 
       {/* Chart + Watchlist — client component, renders immediately */}
@@ -58,33 +55,37 @@ export default async function DashboardPage({
             empty: dict.chart.empty,
           }}
           watchlistHeading={d.watchlist}
+          watchlistStarredHeading={d.watchlistStarred}
+          watchlistBrowseHeading={d.watchlistBrowse}
         />
       </div>
 
       {/* Recent trades + signals — Supabase data, streamed via Suspense */}
       <Suspense fallback={<ActivitySkeleton />}>
-        <DashboardActivity lang={lang} />
+        <DashboardActivity lang={lang} dashboard={d} />
       </Suspense>
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// DashboardStats — balance cards (needs transfers + all trades)
-// ---------------------------------------------------------------------------
-async function DashboardStats({ lang }: { lang: Locale }) {
-  const [dict, supabase] = await Promise.all([
-    getDictionary(lang),
-    createSupabaseServerClient(),
-  ]);
+async function DashboardStats({
+  statsLabels,
+}: {
+  statsLabels: Dictionary["dashboard"]["stats"];
+}) {
+  const supabase = await createSupabaseServerClient();
 
-  const [{ data: transfers }, { data: allTradesRaw }] = await Promise.all([
-    supabase
-      .from("account_transfers")
-      .select("*")
-      .order("created_at", { ascending: false }),
-    supabase.from("trades").select("id, parent_id, side, status"),
-  ]);
+  const [{ data: transfers, error: transfersError }, { data: allTradesRaw, error: tradesError }] =
+    await Promise.all([
+      supabase
+        .from("account_transfers")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabase.from("trades").select("id, parent_id, side, status"),
+    ]);
+
+  if (transfersError) console.error("account_transfers:", transfersError);
+  if (tradesError) console.error("trades (stats):", tradesError);
 
   const allTrades = (allTradesRaw ?? []) as Pick<
     Trade,
@@ -95,7 +96,7 @@ async function DashboardStats({ lang }: { lang: Locale }) {
     <BalanceCards
       transfers={(transfers ?? []) as AccountTransfer[]}
       trades={allTrades}
-      labels={dict.dashboard.stats}
+      labels={statsLabels}
     />
   );
 }
@@ -117,30 +118,35 @@ function StatsSkeleton() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// DashboardActivity — recent trades + signals panel
-// ---------------------------------------------------------------------------
-async function DashboardActivity({ lang }: { lang: Locale }) {
-  const [dict, supabase] = await Promise.all([
-    getDictionary(lang),
-    createSupabaseServerClient(),
+async function DashboardActivity({
+  lang,
+  dashboard,
+}: {
+  lang: Locale;
+  dashboard: Dictionary["dashboard"];
+}) {
+  const supabase = await createSupabaseServerClient();
+
+  const [
+    { data: recentSignalsRaw, error: signalsError },
+    { data: recentTradesRaw, error: tradesError },
+  ] = await Promise.all([
+    supabase
+      .from("signals")
+      .select("id, symbol, side, price_at_signal, is_executed, created_at")
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("trades")
+      .select(
+        "id, symbol, side, status, avg_fill_price, price_per_unit, created_at",
+      )
+      .order("created_at", { ascending: false })
+      .limit(5),
   ]);
 
-  const [{ data: recentSignalsRaw }, { data: recentTradesRaw }] =
-    await Promise.all([
-      supabase
-        .from("signals")
-        .select("id, symbol, side, price_at_signal, is_executed, created_at")
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("trades")
-        .select(
-          "id, symbol, side, status, avg_fill_price, price_per_unit, created_at",
-        )
-        .order("created_at", { ascending: false })
-        .limit(5),
-    ]);
+  if (signalsError) console.error("signals:", signalsError);
+  if (tradesError) console.error("trades (activity):", tradesError);
 
   const recentSignals = (recentSignalsRaw ?? []) as Pick<
     Signal,
@@ -157,7 +163,7 @@ async function DashboardActivity({ lang }: { lang: Locale }) {
     | "created_at"
   >[];
 
-  const d = dict.dashboard;
+  const d = dashboard;
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">

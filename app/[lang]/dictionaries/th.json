@@ -129,6 +129,8 @@
     "trades": "การเทรด",
     "signals": "สัญญาณ",
     "watchlist": "รายการติดตาม",
+    "watchlistStarred": "รายการโปรด",
+    "watchlistBrowse": "สัญลักษณ์ทั้งหมด",
     "title": "แดชบอร์ด",
     "subtitle": "กิจกรรมการเทรดอัตโนมัติของคุณในมุมมองรวม",
     "stats": {
