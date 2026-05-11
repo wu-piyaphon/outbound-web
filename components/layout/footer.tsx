@@ -9,9 +9,12 @@ type FooterProps = {
   dict: Dictionary;
 };
 
+// Evaluated once at module load so the Server Component render itself doesn't
+// touch the clock (which cacheComponents treats as dynamic data).
+const CURRENT_YEAR = new Date().getFullYear();
+
 export function Footer({ lang, dict }: FooterProps) {
-  const year = new Date().getFullYear();
-  const copyright = dict.footer.copyright.replace("{year}", String(year));
+  const copyright = dict.footer.copyright.replace("{year}", String(CURRENT_YEAR));
 
   const columns = [
     {

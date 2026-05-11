@@ -1,6 +1,43 @@
 "use server";
 
+import { getAllAssets, type AlpacaAsset } from "@/lib/alpaca";
 import type { Candle } from "@/lib/indicators/sma";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+const PAGE_SIZE = 25;
+
+export type SymbolPage = {
+  assets: AlpacaAsset[];
+  hasMore: boolean;
+};
+
+export async function getWatchlist(): Promise<string[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("watchlists")
+    .select("symbol")
+    .eq("is_active", true);
+  return (data ?? []).map((row) => row.symbol as string);
+}
+
+export async function searchSymbols(
+  query: string,
+  page: number,
+): Promise<SymbolPage> {
+  const all = await getAllAssets();
+
+  const q = query.trim().toUpperCase();
+  const filtered = q
+    ? all.filter(
+        (a) => a.symbol.startsWith(q) || a.name.toUpperCase().includes(q),
+      )
+    : all;
+
+  const start = page * PAGE_SIZE;
+  const assets = filtered.slice(start, start + PAGE_SIZE);
+
+  return { assets, hasMore: start + PAGE_SIZE < filtered.length };
+}
 
 export type LatestPrice = {
   symbol: string;
@@ -16,7 +53,13 @@ export async function getLatestPrice(symbol: string): Promise<LatestPrice> {
   const prev = candles[candles.length - 2] ?? latest;
   const change = round(latest.close - prev.close);
   const changePct = round((change / prev.close) * 100);
-  return { symbol, price: latest.close, prevClose: prev.close, change, changePct };
+  return {
+    symbol,
+    price: latest.close,
+    prevClose: prev.close,
+    change,
+    changePct,
+  };
 }
 
 /**

@@ -5,7 +5,7 @@ import { TrendingDown, TrendingUp } from "lucide-react";
 import useSWR from "swr";
 
 import { TradingChart } from "@/components/chart/trading-chart";
-import { Watchlist, WATCHLIST_SYMBOLS } from "@/components/dashboard/watchlist";
+import { Watchlist } from "@/components/dashboard/watchlist";
 import { getLatestPrice } from "@/app/actions/market-data";
 import { cn } from "@/lib/utils";
 
@@ -25,9 +25,7 @@ export function ChartWithWatchlist({
   chartLabels,
   watchlistHeading,
 }: ChartWithWatchlistProps) {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>(
-    WATCHLIST_SYMBOLS[0],
-  );
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
 
   const { data: price } = useSWR(
     ["latest-price", selectedSymbol],
@@ -73,7 +71,11 @@ export function ChartWithWatchlist({
           </div>
         </div>
 
-        <TradingChart key={selectedSymbol} symbol={selectedSymbol} labels={chartLabels} />
+        <TradingChart
+          key={selectedSymbol}
+          symbol={selectedSymbol}
+          labels={chartLabels}
+        />
       </div>
 
       {/* Watchlist panel */}

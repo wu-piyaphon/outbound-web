@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { BalanceCards } from "@/components/dashboard/balance-cards";
 import { ChartWithWatchlist } from "@/components/dashboard/chart-with-watchlist";
 import { getDictionary } from "@/app/[lang]/dictionaries";
-import { isLocale } from "@/lib/i18n/config";
+import { isLocale, type Locale } from "@/lib/i18n/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatUsdStr } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,11 @@ import {
 } from "@/lib/dashboard/constants";
 import type { AccountTransfer, Signal, Trade } from "@/lib/types/database";
 
+// ---------------------------------------------------------------------------
+// Page shell — only awaits the static dictionary (module import, not a fetch).
+// The two Suspense boundaries below let PPR stream the Supabase sections
+// progressively without blocking the initial paint.
+// ---------------------------------------------------------------------------
 export default async function DashboardPage({
   params,
 }: {
@@ -24,38 +30,118 @@ export default async function DashboardPage({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
+  const dict = await getDictionary(lang);
+  const d = dict.dashboard;
+
+  return (
+    <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">{d.title}</h1>
+        <p className="text-muted-foreground mt-1 text-sm">{d.subtitle}</p>
+      </div>
+
+      {/* Stat cards — Supabase data, streamed via Suspense */}
+      <Suspense fallback={<StatsSkeleton />}>
+        <DashboardStats lang={lang} />
+      </Suspense>
+
+      {/* Chart + Watchlist — client component, renders immediately */}
+      <div className="mt-6">
+        <ChartWithWatchlist
+          chartLabels={{
+            indicators: dict.chart.indicators.title,
+            sma: dict.chart.indicators.sma,
+            ema: dict.chart.indicators.ema,
+            rsi: dict.chart.indicators.rsi,
+            loading: dict.chart.loading,
+            empty: dict.chart.empty,
+          }}
+          watchlistHeading={d.watchlist}
+        />
+      </div>
+
+      {/* Recent trades + signals — Supabase data, streamed via Suspense */}
+      <Suspense fallback={<ActivitySkeleton />}>
+        <DashboardActivity lang={lang} />
+      </Suspense>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DashboardStats — balance cards (needs transfers + all trades)
+// ---------------------------------------------------------------------------
+async function DashboardStats({ lang }: { lang: Locale }) {
   const [dict, supabase] = await Promise.all([
     getDictionary(lang),
     createSupabaseServerClient(),
   ]);
 
-  const [
-    { data: transfers },
-    { data: allTradesRaw },
-    { data: recentSignalsRaw },
-    { data: recentTradesRaw },
-  ] = await Promise.all([
+  const [{ data: transfers }, { data: allTradesRaw }] = await Promise.all([
     supabase
       .from("account_transfers")
       .select("*")
       .order("created_at", { ascending: false }),
     supabase.from("trades").select("id, parent_id, side, status"),
-    supabase
-      .from("signals")
-      .select("id, symbol, side, price_at_signal, is_executed, created_at")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    supabase
-      .from("trades")
-      .select("id, symbol, side, status, avg_fill_price, price_per_unit, created_at")
-      .order("created_at", { ascending: false })
-      .limit(5),
   ]);
 
   const allTrades = (allTradesRaw ?? []) as Pick<
     Trade,
     "id" | "parent_id" | "side" | "status"
   >[];
+
+  return (
+    <BalanceCards
+      transfers={(transfers ?? []) as AccountTransfer[]}
+      trades={allTrades}
+      labels={dict.dashboard.stats}
+    />
+  );
+}
+
+function StatsSkeleton() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="rounded-xl border p-5">
+          <div className="flex items-center justify-between">
+            <div className="bg-muted h-4 w-28 animate-pulse rounded" />
+            <div className="bg-muted h-4 w-4 animate-pulse rounded" />
+          </div>
+          <div className="bg-muted mt-3 h-7 w-20 animate-pulse rounded" />
+          <div className="bg-muted mt-1.5 h-3 w-24 animate-pulse rounded" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DashboardActivity — recent trades + signals panel
+// ---------------------------------------------------------------------------
+async function DashboardActivity({ lang }: { lang: Locale }) {
+  const [dict, supabase] = await Promise.all([
+    getDictionary(lang),
+    createSupabaseServerClient(),
+  ]);
+
+  const [{ data: recentSignalsRaw }, { data: recentTradesRaw }] =
+    await Promise.all([
+      supabase
+        .from("signals")
+        .select("id, symbol, side, price_at_signal, is_executed, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("trades")
+        .select(
+          "id, symbol, side, status, avg_fill_price, price_per_unit, created_at",
+        )
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
+
   const recentSignals = (recentSignalsRaw ?? []) as Pick<
     Signal,
     "id" | "symbol" | "side" | "price_at_signal" | "is_executed" | "created_at"
@@ -74,134 +160,129 @@ export default async function DashboardPage({
   const d = dict.dashboard;
 
   return (
-    <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{d.title}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{d.subtitle}</p>
-      </div>
-
-      {/* Stat cards */}
-      <BalanceCards
-        transfers={(transfers ?? []) as AccountTransfer[]}
-        trades={allTrades}
-        labels={d.stats}
-      />
-
-      {/* Chart + Watchlist */}
-      <div className="mt-6">
-        <ChartWithWatchlist
-          chartLabels={{
-            indicators: dict.chart.indicators.title,
-            sma: dict.chart.indicators.sma,
-            ema: dict.chart.indicators.ema,
-            rsi: dict.chart.indicators.rsi,
-            loading: dict.chart.loading,
-            empty: dict.chart.empty,
-          }}
-          watchlistHeading={d.watchlist}
-        />
-      </div>
-
-      {/* Recent activity */}
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        {/* Recent Trades */}
-        <div className="rounded-xl border">
-          <div className="flex items-center justify-between border-b px-5 py-4">
-            <h2 className="text-sm font-semibold">{d.recentTrades}</h2>
-            <Link
-              href={`/${lang}/dashboard/trades`}
-              className="text-primary hover:text-primary/80 text-xs font-medium transition-colors"
-            >
-              {d.viewAll} →
-            </Link>
-          </div>
-          {!recentTrades.length ? (
-            <p className="text-muted-foreground px-5 py-6 text-sm">{d.noTrades}</p>
-          ) : (
-            <ul className="divide-y">
-              {recentTrades.map((trade) => (
-                <li
-                  key={trade.id}
-                  className="flex items-center justify-between px-5 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`inline-flex rounded px-2 py-0.5 text-xs font-semibold uppercase ${sideBadgeClass(trade.side)}`}
-                    >
-                      {trade.side === "buy" ? d.buy : d.sell}
-                    </span>
-                    <span className="font-mono text-sm font-medium">
-                      {trade.symbol}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-right">
-                    <span className="text-muted-foreground text-xs">
-                      {formatUsdStr(trade.avg_fill_price ?? trade.price_per_unit)}
-                    </span>
-                    <span
-                      className={`rounded px-2 py-0.5 text-xs font-medium ${TRADE_STATUS_CLASSES[trade.status] ?? ""}`}
-                    >
-                      {trade.status}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+    <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      {/* Recent Trades */}
+      <div className="rounded-xl border">
+        <div className="flex items-center justify-between border-b px-5 py-4">
+          <h2 className="text-sm font-semibold">{d.recentTrades}</h2>
+          <Link
+            href={`/${lang}/dashboard/trades`}
+            className="text-primary hover:text-primary/80 text-xs font-medium transition-colors"
+          >
+            {d.viewAll} →
+          </Link>
         </div>
-
-        {/* Recent Signals */}
-        <div className="rounded-xl border">
-          <div className="flex items-center justify-between border-b px-5 py-4">
-            <h2 className="text-sm font-semibold">{d.recentSignals}</h2>
-            <Link
-              href={`/${lang}/dashboard/signals`}
-              className="text-primary hover:text-primary/80 text-xs font-medium transition-colors"
-            >
-              {d.viewAll} →
-            </Link>
-          </div>
-          {!recentSignals.length ? (
-            <p className="text-muted-foreground px-5 py-6 text-sm">{d.noSignals}</p>
-          ) : (
-            <ul className="divide-y">
-              {recentSignals.map((signal) => (
-                <li
-                  key={signal.id}
-                  className="flex items-center justify-between px-5 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`inline-flex rounded px-2 py-0.5 text-xs font-semibold uppercase ${sideBadgeClass(signal.side)}`}
-                    >
-                      {signal.side === "buy" ? d.buy : d.sell}
-                    </span>
-                    <span className="font-mono text-sm font-medium">
-                      {signal.symbol}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-right">
-                    <span className="text-muted-foreground text-xs">
-                      {formatUsdStr(signal.price_at_signal)}
-                    </span>
-                    <span
-                      className={cn(
-                        "rounded px-2 py-0.5 text-xs font-medium",
-                        signal.is_executed
-                          ? BOOL_TRUE_BADGE_CLASS
-                          : BOOL_FALSE_BADGE_CLASS,
-                      )}
-                    >
-                      {signal.is_executed ? d.signalLog.yes : d.signalLog.no}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {!recentTrades.length ? (
+          <p className="text-muted-foreground px-5 py-6 text-sm">{d.noTrades}</p>
+        ) : (
+          <ul className="divide-y">
+            {recentTrades.map((trade) => (
+              <li
+                key={trade.id}
+                className="flex items-center justify-between px-5 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`inline-flex rounded px-2 py-0.5 text-xs font-semibold uppercase ${sideBadgeClass(trade.side)}`}
+                  >
+                    {trade.side === "buy" ? d.buy : d.sell}
+                  </span>
+                  <span className="font-mono text-sm font-medium">
+                    {trade.symbol}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-right">
+                  <span className="text-muted-foreground text-xs">
+                    {formatUsdStr(trade.avg_fill_price ?? trade.price_per_unit)}
+                  </span>
+                  <span
+                    className={`rounded px-2 py-0.5 text-xs font-medium ${TRADE_STATUS_CLASSES[trade.status] ?? ""}`}
+                  >
+                    {trade.status}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
+
+      {/* Recent Signals */}
+      <div className="rounded-xl border">
+        <div className="flex items-center justify-between border-b px-5 py-4">
+          <h2 className="text-sm font-semibold">{d.recentSignals}</h2>
+          <Link
+            href={`/${lang}/dashboard/signals`}
+            className="text-primary hover:text-primary/80 text-xs font-medium transition-colors"
+          >
+            {d.viewAll} →
+          </Link>
+        </div>
+        {!recentSignals.length ? (
+          <p className="text-muted-foreground px-5 py-6 text-sm">{d.noSignals}</p>
+        ) : (
+          <ul className="divide-y">
+            {recentSignals.map((signal) => (
+              <li
+                key={signal.id}
+                className="flex items-center justify-between px-5 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`inline-flex rounded px-2 py-0.5 text-xs font-semibold uppercase ${sideBadgeClass(signal.side)}`}
+                  >
+                    {signal.side === "buy" ? d.buy : d.sell}
+                  </span>
+                  <span className="font-mono text-sm font-medium">
+                    {signal.symbol}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-right">
+                  <span className="text-muted-foreground text-xs">
+                    {formatUsdStr(signal.price_at_signal)}
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded px-2 py-0.5 text-xs font-medium",
+                      signal.is_executed
+                        ? BOOL_TRUE_BADGE_CLASS
+                        : BOOL_FALSE_BADGE_CLASS,
+                    )}
+                  >
+                    {signal.is_executed ? d.signalLog.yes : d.signalLog.no}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ActivitySkeleton() {
+  return (
+    <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      {Array.from({ length: 2 }).map((_, i) => (
+        <div key={i} className="rounded-xl border">
+          <div className="flex items-center justify-between border-b px-5 py-4">
+            <div className="bg-muted h-4 w-28 animate-pulse rounded" />
+            <div className="bg-muted h-3 w-12 animate-pulse rounded" />
+          </div>
+          <ul className="divide-y">
+            {Array.from({ length: 4 }).map((_, j) => (
+              <li key={j} className="flex items-center justify-between px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="bg-muted h-5 w-10 animate-pulse rounded" />
+                  <div className="bg-muted h-4 w-12 animate-pulse rounded" />
+                </div>
+                <div className="bg-muted h-4 w-16 animate-pulse rounded" />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 }

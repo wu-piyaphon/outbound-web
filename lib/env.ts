@@ -11,3 +11,14 @@ export const publicEnv = PublicEnvSchema.parse({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
 });
+
+// Server-only — never import this in client components.
+const ServerEnvSchema = z.object({
+  ALPACA_API_KEY: z.string().default(""),
+  ALPACA_API_SECRET: z.string().default(""),
+});
+
+export const serverEnv = ServerEnvSchema.parse({
+  ALPACA_API_KEY: process.env.ALPACA_API_KEY,
+  ALPACA_API_SECRET: process.env.ALPACA_API_SECRET,
+});

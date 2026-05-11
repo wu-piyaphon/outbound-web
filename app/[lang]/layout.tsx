@@ -6,9 +6,16 @@ import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { LOCALES, isLocale } from "@/lib/i18n/config";
-import { getServerTheme } from "@/lib/theme/server";
+import { THEME_COOKIE_NAME } from "@/lib/theme/shared";
 import { getDictionary } from "./dictionaries";
 import "../globals.css";
+
+// Runs synchronously before paint: reads the theme cookie (or
+// prefers-color-scheme for "system"/first visit) and applies the class +
+// color-scheme to <html>. Inlined here so the layout stays fully static —
+// reading cookies() in the layout would force the whole route dynamic under
+// cacheComponents.
+const themeInitScript = `(function(){try{var m=document.cookie.match(/(?:^|; )${THEME_COOKIE_NAME}=([^;]*)/);var p=m?decodeURIComponent(m[1]):'system';var r=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;var e=document.documentElement;if(r==='dark')e.classList.add('dark');e.style.colorScheme=r;}catch(_){}})();`;
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -45,28 +52,17 @@ export default async function LocaleLayout({
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
 
-  const [dict, serverTheme] = await Promise.all([
-    getDictionary(lang),
-    getServerTheme(),
-  ]);
-
-  // Apply explicit light/dark class on <html> when we know the user's choice;
-  // for "system" or first visits, the async theme-init.js script sets it
-  // before paint based on prefers-color-scheme.
-  const themeClass =
-    serverTheme === "dark" ? "dark" : serverTheme === "light" ? "" : "";
+  const dict = await getDictionary(lang);
 
   return (
     <html
       lang={lang}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${themeClass} h-full antialiased`}
-      style={
-        serverTheme === "dark" || serverTheme === "light"
-          ? { colorScheme: serverTheme }
-          : undefined
-      }
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
         <Navbar lang={lang} dict={dict} />
         <main className="flex flex-1 flex-col">{children}</main>
