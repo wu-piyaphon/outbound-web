@@ -126,12 +126,7 @@ export function Watchlist({
     const observer = new IntersectionObserver(
       ([entry]) => {
         const pagesReady = data?.length === size;
-        if (
-          entry.isIntersecting &&
-          pagesReady &&
-          !isValidating &&
-          hasMore
-        ) {
+        if (entry.isIntersecting && pagesReady && !isValidating && hasMore) {
           setSize((s) => s + 1);
         }
       },
@@ -185,22 +180,12 @@ export function Watchlist({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search symbol or company…"
             className={cn(
-              "w-full rounded-md bg-transparent py-1.5 pr-7 pl-8 text-sm",
+              "w-full rounded-md bg-transparent py-1.5 pr-2 pl-8 text-sm",
               "placeholder:text-muted-foreground",
-              "focus:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+              "focus-visible:ring-primary focus:outline-none focus-visible:ring-1",
             )}
             spellCheck={false}
           />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="text-muted-foreground hover:text-foreground absolute right-2 transition-colors"
-              aria-label="Clear search"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
         </div>
       </div>
 
@@ -232,7 +217,7 @@ export function Watchlist({
                   ))}
                 </ul>
                 {!deferredQuery.trim() && showMainUl ? (
-                  <div className="bg-muted/30 text-muted-foreground border-b border-t px-4 py-2 text-xs font-medium">
+                  <div className="bg-muted/30 text-muted-foreground border-t border-b px-4 py-2 text-xs font-medium">
                     {browseSectionHeading}
                   </div>
                 ) : null}
@@ -335,7 +320,7 @@ function WatchlistRow({
         onClick={() => onSelect(asset.symbol)}
         className={cn(
           "flex min-w-0 flex-1 items-center justify-between gap-3 py-3 pr-4 text-left transition-colors",
-          "hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
+          "hover:bg-muted/40 focus-visible:ring-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-inset",
           isActive ? "pl-0" : "pl-1",
         )}
       >
