@@ -3,13 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 
 import { Footer } from "@/components/layout/footer";
-import { Navbar } from "@/components/layout/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { LOCALES, isLocale } from "@/lib/i18n/config";
-import {
-  THEME_COOKIE_NAME,
-  escapeRegExpCookieName,
-} from "@/lib/theme/shared";
+import { THEME_COOKIE_NAME, escapeRegExpCookieName } from "@/lib/theme/shared";
 import { getDictionary } from "./dictionaries";
 import "../globals.css";
 
@@ -68,7 +64,7 @@ export default async function LocaleLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
-        <Navbar lang={lang} dict={dict} />
+        {/* <Navbar lang={lang} dict={dict} /> */}
         <main className="flex flex-1 flex-col">{children}</main>
         <Footer lang={lang} dict={dict} />
         <Toaster />
